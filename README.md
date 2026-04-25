@@ -31,7 +31,7 @@ This project builds a full SQL analytics layer on the Olist dataset and surfaces
 | `order_reviews` | 99,224 | Review scores 1–5 |
 | `geolocation` | 1,000,163 | ZIP-to-lat/lng mapping |
 
-**Date range:** September 2016 – October 2018 | **Countries:** Brazil (27 states)
+**Date range:** September 2016 – October 2018 | **Country:** Brazil (27 states)
 
 ---
 
@@ -60,6 +60,9 @@ This project builds a full SQL analytics layer on the Olist dataset and surfaces
 | Performance indexing | 7 indexes on high-cardinality join columns |
 | Date arithmetic | Delivery day calculations, cohort period offsets |
 | `NULLIF` / `COALESCE` | Safe division, null handling |
+| `PERCENTILE_CONT` / IQR outlier detection | EDA distribution analysis |
+| `INSERT INTO` / `UPDATE` / `ON CONFLICT` | Delivery audit table population |
+| Stored Functions (`plpgsql`) | Reusable delivery status classifier |
 
 ---
 
@@ -69,14 +72,16 @@ This project builds a full SQL analytics layer on the Olist dataset and surfaces
 ecommerce-sql-intelligence/
 │
 ├── sql/
-│   ├── 01_schema.sql              # Full DDL — tables, PKs, FKs, indexes
-│   ├── 02_load_data.sql           # COPY commands + row count validation
-│   ├── 03_eda.sql                 # Data quality audit + revenue overview
-│   └── 04_advanced_analytics.sql # Window functions, RFM, cohorts, seller KPIs
-│                                  # + 3 Power BI views
+│   ├── 01_schema.sql                  # Full DDL — tables, PKs, FKs, indexes
+│   ├── 02_load_data.sql               # COPY commands + row count validation
+│   ├── 03_eda.sql                     # Data quality audit, null checks, outlier detection
+│   ├── 04_advanced_analytics.sql      # Window functions, RFM, cohorts, seller KPIs
+│   │                                  # + 3 Power BI views
+│   └── 05_payment_intelligence.sql    # Payment method analysis, installments,
+│                                      # reconciliation, DML, stored function
 │
 ├── docs/
-│   └── powerbi_setup.md           # DAX measures + dashboard build guide
+│   └── powerbi_setup.md               # DAX measures + dashboard build guide
 │
 ├── outputs/
 │   ├── dashboard_page1_revenue.png
@@ -94,6 +99,11 @@ ecommerce-sql-intelligence/
 - Top 5 product categories account for **~42% of total gross revenue**
 - São Paulo (SP) generates **~40% of all orders** — heavy geographic concentration risk
 - Freight cost averages **~20% of order value** — highest burden on lowest-margin categories
+
+### Payment Intelligence
+- Credit card dominates at **~74% of orders** — voucher usage correlates with higher review scores
+- 60%+ of credit card orders are paid in a single instalment — avg order value rises sharply with instalment count
+- Payment value reconciles to within £0.01 of charged total on **99%+ of orders** — clean financial data confirmed
 
 ### Customer Intelligence
 - **Only 3.1% of customers place more than one order** — retention is the single biggest growth lever
@@ -136,13 +146,16 @@ psql -U postgres -d ecommerce_olist -f sql/01_schema.sql
 # 4. Load data (update file paths in 02_load_data.sql first)
 psql -U postgres -d ecommerce_olist -f sql/02_load_data.sql
 
-# 5. Run EDA
+# 5. Run EDA — data quality audit + distribution checks
 psql -U postgres -d ecommerce_olist -f sql/03_eda.sql
 
 # 6. Run advanced analytics + create views
 psql -U postgres -d ecommerce_olist -f sql/04_advanced_analytics.sql
 
-# 7. Open Power BI and connect to the 3 views
+# 7. Run payment intelligence + DML examples
+psql -U postgres -d ecommerce_olist -f sql/05_payment_intelligence.sql
+
+# 8. Open Power BI and connect to the 3 views
 #    See docs/powerbi_setup.md for full instructions
 ```
 
@@ -162,7 +175,7 @@ psql -U postgres -d ecommerce_olist -f sql/04_advanced_analytics.sql
 
 ## Skills Demonstrated
 
-`PostgreSQL` `Advanced SQL` `Window Functions` `CTEs` `Cohort Analysis` `RFM Segmentation` `Power BI` `DAX` `Data Modelling` `EDA` `Business Intelligence` `Customer Analytics`
+`PostgreSQL` `Advanced SQL` `Window Functions` `CTEs` `Cohort Analysis` `RFM Segmentation` `Power BI` `DAX` `Data Modelling` `EDA` `Business Intelligence` `Customer Analytics` `Stored Functions` `DML`
 
 ---
 
